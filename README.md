@@ -22,6 +22,9 @@ The authors schema should looks like this:
     "username": String LINKED TO post.author
     "password": String
     "email": String
+    "bio": String
+    "profile_picture": UUID LINKED TO images.id
+    "date_created": Date
 }
 ```
 
@@ -30,7 +33,6 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
 {
     "id": UUID
     "image": String (image path)
-    "post": UUID LINKED TO post.id
 }
 ```
 

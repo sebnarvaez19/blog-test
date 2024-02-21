@@ -1,0 +1,9 @@
+[
+    {
+        "id": "1",
+        "author": "Sebástian Narváez",
+        "title": "Lorem Ipsum",
+        "tags": ["programming", "curiosity"],
+        "body": "#Lorem Ipsum \n This should be a **Markdown** text \n I has to looks good"
+    }
+]
