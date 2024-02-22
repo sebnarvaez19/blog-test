@@ -7,7 +7,7 @@ for the posts the schema should be:
 ```json
 {
     "id": UUID
-    "author": String
+    "author": UUID LINKED TO user.id
     "title": String
     "tags": Enum Array
     "body": String (Should be Markdown)
@@ -19,8 +19,8 @@ for the posts the schema should be:
 The authors schema should looks like this:
 ```json
 {
-    "id": UUID
-    "username": String LINKED TO post.author
+    "id": UUID LINKED TO post.author
+    "username": String
     "password": String
     "email": String
     "bio": String
@@ -83,7 +83,7 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
                 3. email [ ]
                 4. date created [ ]
             2. Bio component [ ]
-3. Create the DB
+3. Create the DB (SQLite to do it quickly)
 4. Create the API to work with data
 5. Support for images
 

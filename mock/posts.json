@@ -1,7 +1,7 @@
 [
     {
         "id": "2",
-        "author": "María Cruz",
+        "author": "1",
         "title": "His mother had always taught him",
         "tags": [
             "history",
@@ -13,7 +13,7 @@
     },
     {
         "id": "3",
-        "author": "Andrés del Chiaro",
+        "author": "2",
         "title": "He was an expert but not in a discipline",
         "tags": [
             "french",
@@ -25,7 +25,7 @@
     },
     {
         "id": "4",
-        "author": "Katia Burneo",
+        "author": "3",
         "title": "Dave watched as the forest burned up on the hill.",
         "tags": [
             "magical",
