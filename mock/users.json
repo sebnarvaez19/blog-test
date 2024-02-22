@@ -1,0 +1,26 @@
+[
+    {
+        "id": "1",
+        "username": "mafemaria",
+        "password": "12345678",
+        "email": "mafemaria@email.com",
+        "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac lectus porttitor, dapibus eros sit amet, fringilla orci.",
+        "date_created": "19/02/2024"
+    },
+    {
+        "id": "2",
+        "username": "delchiaro",
+        "password": "12345678",
+        "email": "adc@email.com",
+        "bio": "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.",
+        "date_created": "21/02/2024"
+    },
+    {
+        "id": "3",
+        "username": "katialamejor",
+        "password": "12345678",
+        "email": "katia@email.com",
+        "bio": "uspendisse sit amet dui diam. Donec eget blandit magna. Integer at turpis tincidunt, consequat risus in, convallis purus. Aliquam commodo sem ut libero tincidunt elementum. Quisque quis urna dui. Fusce tincidunt viverra eros ac pulvinar",
+        "date_created": "20/02/2024"
+    }
+]
