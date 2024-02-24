@@ -37,11 +37,10 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
 }
 ```
 
-
-
 ## TODO
 1. Create the mock data ✔️
-2. Create the blog client ❌
+2. Create the API to work with data
+3. Create the blog client ❌
     1. Create the main page ❌
         1. Header component ❌
             1. Link to Home ❌
@@ -83,8 +82,4 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
                 3. email ❌
                 4. date created ❌
             2. Bio component ❌
-3. Create the DB (SQLite to do it quickly)
-4. Create the API to work with data
-5. Support for images
-
-
+4. Support for images
