@@ -6,17 +6,18 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 
-from . import database, models
+from .models import User
+from .database import create_db_and_tables, engine
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    database.create_db_and_tables()
+    create_db_and_tables()
     yield
 
 
 async def get_session():
-    with Session(database.engine) as session:
+    with Session(engine) as session:
         yield session
 
 
@@ -38,16 +39,16 @@ async def main():
     return {"message": "Hi, go to docs to test the API"}
 
 
-@app.get("/users/", response_model=List[models.UserRead])
+@app.get("/users/", response_model=List[User])
 async def read_users(*, session: Session = Depends(get_session), limit: int = 0, offset: int = 0):
-    users = session.exec(select(models.User).limit(limit).offset(offset)).all()
+    users = session.exec(select(User).limit(limit).offset(offset)).all()
 
     return users
 
 
-@app.post("/users/", response_model=models.UserRead)
-async def create_user(*, session: Session = Depends(get_session), user: models.User):
-    db_user = models.User.model_validate(user)
+@app.post("/users/", response_model=User)
+async def create_user(*, session: Session = Depends(get_session), user: User):
+    db_user = User.model_validate(user)
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
@@ -55,9 +56,9 @@ async def create_user(*, session: Session = Depends(get_session), user: models.U
     return db_user
 
 
-@app.patch("/users/{user_id}", response_model=models.UserRead)
-async def update_user(*, session: Session = Depends(get_session), user_id: UUID, user: models.UserUpdate):
-    db_user = session.get(models.User, user_id)
+@app.patch("/users/{user_id}", response_model=User)
+async def update_user(*, session: Session = Depends(get_session), user_id: UUID, user: User):
+    db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -74,7 +75,7 @@ async def update_user(*, session: Session = Depends(get_session), user_id: UUID,
 
 @app.delete("/users/{user_id}")
 async def delete_user(*, session: Session = Depends(get_session), user_id: UUID):
-    user = session.get(models.User, user_id)
+    user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Task not found")
     
