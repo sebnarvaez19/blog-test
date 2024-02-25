@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 
-from .models import User
+from .models import User, Post
 from .database import create_db_and_tables, engine
 
 
@@ -51,6 +51,15 @@ async def read_users(*, session: Session = Depends(get_session), limit: int = 0,
     users = session.exec(query).all()
 
     return users
+
+
+@app.get("/users/{user_id}", response_model=User)
+async def read_user(*, session: Session = Depends(get_session), user_id: UUID):
+    db_user = session.get(User, user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return db_user
 
 
 @app.post("/users/", response_model=User)
