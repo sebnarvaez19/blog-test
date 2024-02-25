@@ -20,5 +20,5 @@ class User(SQLModel, table=True):
     name: Optional[str]
     username: str
     email: str
-    bio: str
+    bio: Optional[str]
     posts: List[Post] = Relationship(back_populates="user")
