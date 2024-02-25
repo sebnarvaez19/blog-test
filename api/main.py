@@ -99,3 +99,65 @@ async def delete_user(*, session: Session = Depends(get_session), user_id: UUID)
     session.commit()
 
     return {"ok": True}
+
+
+@app.get("/posts/", response_model=List[Post])
+async def read_posts(*, session: Session = Depends(get_session), limit: int = 0, offset: int = 0):
+    query = select(Post)
+    if limit:
+        query = query.limit(limit)
+
+    if offset:
+        query = query.offset(offset)
+
+    posts = session.exec(query).all()
+
+    return posts
+
+
+@app.post("/posts/", response_model=Post)
+async def create_post(*, session: Session = Depends(get_session), post: Post):
+    db_post = Post.model_validate(post)
+    session.add(db_post)
+    session.commit()
+    session.refresh(db_post)
+
+    return db_post
+
+
+@app.get("/posts/{post_id}", response_model=Post)
+async def read_post(*, session: Session = Depends(get_session), post_id: UUID):
+    db_post = session.get(Post, post_id)
+    if not db_post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    return db_post
+
+
+@app.patch("/posts/{post_id}", response_model=Post)
+async def update_post(*, session: Session = Depends(get_session), post_id: UUID, post: Post):
+    db_post = session.get(Post, post_id)
+    if not db_post:
+        HTTPException(status_code=404, detail="Post not found")
+
+    post_data = post.model_dump(exclude_unset=True)
+    for key, value in post_data.items():
+        setattr(db_post, key, value)
+
+    session.add(db_post)
+    session.commit()
+    session.refresh(db_post)
+
+    return db_post
+
+
+@app.delete("/posts/{post_id}")
+async def delete_post(*, session: Session = Depends(get_session), post_id: UUID):
+    post = session.get(Post, post_id)
+    if not post:
+        HTTPException(status_code=404, detail="Post not found")
+
+    session.delete(post)
+    session.commit()
+
+    return {"ok": True}
