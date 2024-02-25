@@ -161,3 +161,14 @@ async def delete_post(*, session: Session = Depends(get_session), post_id: UUID)
     session.commit()
 
     return {"ok": True}
+
+
+@app.get("/users/{user_id}/posts/", response_model=List[Post])
+async def read_user_posts(*, session: Session = Depends(get_session), user_id: UUID):
+    user = session.get(User, user_id)
+    if not user:
+        HTTPException(status_code=404, detail="User not found")
+
+    posts = session.exec(select(Post).where(Post.user_id == user.id)).all()
+
+    return posts
