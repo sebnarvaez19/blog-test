@@ -41,7 +41,14 @@ async def main():
 
 @app.get("/users/", response_model=List[User])
 async def read_users(*, session: Session = Depends(get_session), limit: int = 0, offset: int = 0):
-    users = session.exec(select(User).limit(limit).offset(offset)).all()
+    query = select(User)
+    if limit:
+        query = query.limit(limit)
+
+    if offset:
+        query = query.offset(offset)
+    
+    users = session.exec(query).all()
 
     return users
 
