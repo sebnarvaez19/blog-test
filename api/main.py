@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import Session, select
+from sqlmodel import Session, select, column
 
 from .models import User, Post
 from .database import create_db_and_tables, engine
@@ -170,5 +170,18 @@ async def read_user_posts(*, session: Session = Depends(get_session), user_id: U
         HTTPException(status_code=404, detail="User not found")
 
     posts = session.exec(select(Post).where(Post.user_id == user.id)).all()
+
+    return posts
+
+
+@app.get("/posts/tags/{tags}")
+async def read_posts_by_tags(*, session: Session = Depends(get_session), tags: str):
+    list_of_tags = [tag[1:] if tag[0] == " " else tag for tag in tags.split(",")]
+    
+    query = select(Post)
+    for tag in list_of_tags:
+        query = query.filter(column("tags").contains(tag))
+
+    posts = session.exec(query).all()
 
     return posts
