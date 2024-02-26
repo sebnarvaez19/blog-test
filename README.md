@@ -39,7 +39,7 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
 
 ## TODO
 1. Create the mock data ✔️
-2. Create the API to work with data
+2. Create the API to work with data ✔️
 3. Create the blog client ❌
     1. Create the main page ❌
         1. Header component ❌
