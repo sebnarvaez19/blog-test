@@ -1,8 +1,12 @@
+import { useLoaderData } from "react-router-dom";
 import Feed from "../components/Feed";
 import FiltersPannel from "../components/FiltersPannel";
 import RecentPannel from "../components/RecentPannel";
+import { RootLoaderData } from "../types";
 
 export default function Index() {
+    const { posts } = useLoaderData() as RootLoaderData
+    console.log(posts)
     return (
         <>
             <div className="grid">
