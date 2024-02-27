@@ -12,6 +12,6 @@ export type Post = {
     title: string,
     body: string,
     tags: string,
-    createdAt: string,
-    userId: string
+    createdAt?: string,
+    userId?: string
 }
