@@ -15,3 +15,7 @@ export type Post = {
     createdAt?: string,
     userId?: string
 }
+
+export type RootLoaderData = {
+    posts: Post[],
+}
