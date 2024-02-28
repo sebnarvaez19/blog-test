@@ -37,3 +37,10 @@ export async function getPostsByUser(userId: string): Promise<Post[]> {
 
     return data
 }
+
+export async function getPostsByTags(tags: string) {
+    const response = await fetch(postAPI + `tags/${tags}`)
+    const data = await response.json()
+
+    return data
+}

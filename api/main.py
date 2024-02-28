@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, Depends
@@ -343,11 +343,12 @@ async def read_posts_by_tags(*, session: Session = Depends(get_session), tags: s
     List[Post]
         The posts with the given tags.
     """
-    list_of_tags = [tag[1:] if tag[0] == " " else tag for tag in tags.split(",")]
-
     query = select(Post)
-    for tag in list_of_tags:
-        query = query.filter(column("tags").contains(tag))
+    
+    if tags != "all": 
+        list_of_tags = [tag[1:] if tag[0] == " " else tag for tag in tags.split(",")]
+        for tag in list_of_tags:
+            query = query.filter(column("tags").contains(tag))
 
     posts = session.exec(query).all()
 
