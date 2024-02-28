@@ -42,17 +42,17 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
 2. Create the API to work with data ✔️
 3. Create the blog client ❌
     1. Create the main page ❌
-        1. Header component ❌
-            1. Link to Home ❌
-            2. Search bar ❌
-        2. Feed component ❌
-            1. List of posts ❌
-                1. Post banner ❌
-                    1. Title ❌
-                    2. Authot ❌
-                    3. Date ❌
-                    4. Tags ❌
-                    4. Body _rounded_ ❌
+        1. Header component ✔️
+            1. Link to Home ✔️
+            2. Search bar ✔️
+        2. Feed component ✔️
+            1. List of posts ✔️
+                1. Post banner ✔️
+                    1. Title ✔️
+                    2. Authot ✔️
+                    3. Date ✔️
+                    4. Tags ✔️
+                    4. Body _rounded_ ✔️
         3. Filter component ❌
             1. Tag filter ❌
                 1. List of tags ❌
@@ -66,20 +66,20 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
         4. Recent component ❌
             1. List of posts ❌
                 1. Mini-post ❌
-    2. Create a blog page ❌
-        1. Back button ❌
-        2. Post component ❌
-            1. Title ❌
-            2. Authot ❌
-            3. Date ❌
-            4. Tags ❌
-            4. Body ❌
-    3. Create an user page ❌
-        1. User component ❌
-            1. Profile component ❌
-                1. Profile picture ❌
-                2. username ❌
-                3. email ❌
-                4. date created ❌
-            2. Bio component ❌
-4. Support for images
+    2. Create a blog page ✔️
+        1. Back button ✔️
+        2. Post component ✔️
+            1. Title ✔️
+            2. Authot ✔️
+            3. Date ✔️
+            4. Tags ✔️
+            4. Body ✔️
+    3. Create an user page ✔️
+        1. User component ✔️
+            1. Profile component ✔️
+                1. Profile picture ✔️
+                2. username ✔️
+                3. email ✔️
+                4. date created ✔️
+            2. Bio component ✔️
+4. Support for images ❌
