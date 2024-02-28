@@ -45,3 +45,19 @@ export type useFetchUsersByPostProps = {
     username: string,
     postCount: number
 }
+
+
+export type FilterProps = {
+    posts: Post[],
+    setPosts: function
+}
+
+export type UserRowProps = {
+    user: { userId: string, username: string, postCount: number },
+    clickHandle: function
+}
+
+export type TagRowProps = {
+    tag: [string, number],
+    clickHandle: function
+}

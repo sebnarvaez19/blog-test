@@ -1,17 +1,16 @@
-import { useLoaderData } from "react-router-dom";
 import Feed from "../components/Feed";
 import FiltersPannel from "../components/FiltersPannel";
 import RecentPannel from "../components/RecentPannel";
-import { Post } from "../types";
+import { useFechtPosts } from "../hooks/fetchData";
 
 export default function Index() {
-    const posts = useLoaderData() as Post[]
+    const [posts, setPosts] = useFechtPosts()
 
     return (
         <>
             <div className="grid">
                 <div className="s3 border center-align">
-                    <FiltersPannel />
+                    <FiltersPannel posts={posts} setPosts={setPosts} />
                 </div>
                 <div className="s6 border center align">
                     <Feed posts={posts} />

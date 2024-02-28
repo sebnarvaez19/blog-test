@@ -1,9 +1,16 @@
 import { useFetchTagsByPost } from "../hooks/fetchData";
-import { FeedProps } from "../types";
+import { getPostsByTags } from "../logic";
+import { FilterProps } from "../types";
 import TagRow from "./TagRow";
 
-const TagFilter: React.FC<FeedProps> = ({ posts }) => {
+const TagFilter: React.FC<FilterProps> = ({ posts, setPosts }) => {
     const tags = useFetchTagsByPost(posts)
+
+    async function clickHandle(tags: string) {
+        const data = await getPostsByTags(tags)
+
+        setPosts(data)
+    }
 
     return (
         <article className="fill">
@@ -12,7 +19,7 @@ const TagFilter: React.FC<FeedProps> = ({ posts }) => {
                     <h6>Filter by tag</h6>
                 </div>
                 {tags.map((tag) => (
-                    <TagRow key={tag[0]} tag={tag} />
+                    <TagRow key={tag[0]} tag={tag} clickHandle={clickHandle}/>
                 ))}
             </div>
         </article>

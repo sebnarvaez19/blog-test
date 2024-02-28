@@ -1,18 +1,19 @@
-import { useFetchPostsByTag } from "../hooks/fetchData";
+import React from "react";
 import TagFilter from "./TagFilter";
 import UserFilter from "./UserFilter";
+import { FilterProps } from "../types";
 
-export default function FiltersPannel() {
-    const posts = useFetchPostsByTag("all")
-
+const FiltersPannel: React.FC<FilterProps> = ({ posts, setPosts }) => {
     return (
         <div className="grid">
             <div className="s12">
-                <TagFilter posts={posts}/>
+                <TagFilter posts={posts} setPosts={setPosts}/>
             </div>
             <div className="s12">
-                <UserFilter posts={posts}/>
+                <UserFilter posts={posts} setPosts={setPosts}/>
             </div>
         </div>
     )
 }
+
+export default FiltersPannel

@@ -1,9 +1,16 @@
 import { useFetchUsersByPost } from "../hooks/fetchData";
-import { FeedProps } from "../types";
+import { FilterProps } from "../types";
 import UserRow from "./UserRow";
+import { getPostsByUser } from "../logic";
 
-const UserFilter: React.FC<FeedProps> = ({ posts }) => {
+const UserFilter: React.FC<FilterProps> = ({ posts, setPosts }) => {
     const users = useFetchUsersByPost(posts)
+
+    async function clickHandle(userId: string) {
+        const data = await getPostsByUser(userId)
+
+        setPosts(data)
+    }
 
     return (
         <article className="fill">
@@ -12,7 +19,7 @@ const UserFilter: React.FC<FeedProps> = ({ posts }) => {
                     <h6>Filter by user</h6>
                 </div>
                 {users.map((user) => (
-                    <UserRow key={user.userId} user={user}/>
+                    <UserRow key={user.userId} user={user} clickHandle={clickHandle}/>
                 ))}
             </div>
         </article>       

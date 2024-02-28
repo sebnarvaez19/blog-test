@@ -1,6 +1,21 @@
 import { Post, User, useFetchUsersByPostProps } from "../types";
 import { useEffect, useState } from "react";
-import { getPostsByTags, getPostsByUser, getUser } from "../logic";
+import { getPosts, getPostsByTags, getPostsByUser, getUser } from "../logic";
+
+export function useFechtPosts() {
+    const [posts, setPosts] = useState<Post[]>([])
+
+    useEffect(() => {
+        async function findPosts() {
+            const data = await getPosts()
+            setPosts(data)
+        }
+
+        findPosts()
+    }, [])
+
+    return [posts, setPosts]
+}
 
 export function useFetchUser(userId: string) {
     const [user, setUser] = useState<User>({
