@@ -39,3 +39,9 @@ export type ParamsProps = {
         userId: string
     }
 }
+
+export type useFetchUsersByPostProps = {
+    userId: string,
+    username: string,
+    postCount: number
+}

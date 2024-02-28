@@ -15,7 +15,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                 <div className="grid">
                     <div className="s9 left-align"><h5>{post.title}</h5></div>
                     <div className="s3 right-align"><span className="small-text">{date}</span></div>
-                    <div className="s12 left-align">{user.name}</div>
+                    <div className="s12 left-align"><span className="small-text">{user.username}</span></div>
                     <div className="s12 left-align">{post.body.slice(0,100) + "..."}</div>
                     <div className="s12 left-align">
                         {tagArray.map((tag: string) => (
