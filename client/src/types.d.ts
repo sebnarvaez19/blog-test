@@ -25,6 +25,9 @@ export type PostCardProps = {
     post: Post
 }
 
+export type UserProps = {
+    user: User
+}
 
 export type FeedProps = {
     posts: Post[]
