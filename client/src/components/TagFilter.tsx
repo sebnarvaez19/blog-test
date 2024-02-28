@@ -4,7 +4,6 @@ import TagRow from "./TagRow";
 
 const TagFilter: React.FC<FeedProps> = ({ posts }) => {
     const tags = useFetchTagsByPost(posts)
-    console.log(tags)
 
     return (
         <article className="fill">
