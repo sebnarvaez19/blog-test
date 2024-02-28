@@ -5,6 +5,7 @@ export default function Root() {
     return (
         <>
             <HeaderBar />
+            <br />
             <div>
                 <Outlet />
             </div>

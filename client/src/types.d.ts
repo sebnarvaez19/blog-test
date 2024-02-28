@@ -29,3 +29,10 @@ export type PostCardProps = {
 export type FeedProps = {
     posts: Post[]
 }
+
+export type ParamsProps = {
+    params : {
+        postId: string
+        userId: string
+    }
+}

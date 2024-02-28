@@ -5,7 +5,8 @@ import "material-dynamic-colors"
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
 import Root from "./routes/Root"
 import Index from "./routes/Index"
-import { rootLoader } from "./loader"
+import { postLoader, rootLoader } from "./loader"
+import { Post } from "./routes/Post"
 
 const router = createBrowserRouter([
   {
@@ -13,7 +14,8 @@ const router = createBrowserRouter([
     element: <Root />,
     loader: rootLoader,
     children: [
-      {index: true, element: <Index />, loader: rootLoader}
+      {index: true, element: <Index />, loader: rootLoader},
+      {path: "/posts/:postId", element: <Post />, loader: postLoader}
     ]
   }
 ])
