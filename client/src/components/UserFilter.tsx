@@ -3,12 +3,13 @@ import { FilterProps } from "../types";
 import UserRow from "./UserRow";
 import { getPostsByUser } from "../logic";
 
-const UserFilter: React.FC<FilterProps> = ({ posts, setPosts }) => {
+const UserFilter: React.FC<FilterProps> = ({ posts, setPosts, setFiltered }) => {
     const users = useFetchUsersByPost(posts)
 
     async function clickHandle(userId: string) {
         const data = await getPostsByUser(userId)
 
+        setFiltered(true)
         setPosts(data)
     }
 

@@ -3,12 +3,13 @@ import { getPostsByTags } from "../logic";
 import { FilterProps } from "../types";
 import TagRow from "./TagRow";
 
-const TagFilter: React.FC<FilterProps> = ({ posts, setPosts }) => {
+const TagFilter: React.FC<FilterProps> = ({ posts, setPosts, setFiltered }) => {
     const tags = useFetchTagsByPost(posts)
 
     async function clickHandle(tags: string) {
         const data = await getPostsByTags(tags)
 
+        setFiltered(true)
         setPosts(data)
     }
 

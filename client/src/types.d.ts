@@ -49,7 +49,18 @@ export type useFetchUsersByPostProps = {
 
 export type FilterProps = {
     posts: Post[],
-    setPosts: function
+    setPosts: function,
+    setFiltered: function
+}
+
+export type RemoveFiltersProps = {
+    setPosts: function,
+    setFiltered: function
+}
+
+export type FiltersPannelProps = {
+    posts: Post[],
+    setPosts: function,
 }
 
 export type UserRowProps = {
