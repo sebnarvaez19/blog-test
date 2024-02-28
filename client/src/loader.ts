@@ -1,8 +1,8 @@
 import { getPosts } from "./logic"
-import { RootLoaderData } from "./types"
+import { Post } from "./types"
 
-export async function rootLoader(): Promise<RootLoaderData> {
+export async function rootLoader(): Promise<Post[]> {
     const posts = await getPosts()
 
-    return { posts }
+    return posts
 }

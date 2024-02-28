@@ -4,7 +4,7 @@ export type User = {
     username: string,
     email: string,
     bio?: string,
-    createdAt: string
+    created_at: string
 }
 
 export type Post = {
@@ -12,10 +12,20 @@ export type Post = {
     title: string,
     body: string,
     tags: string,
-    createdAt?: string,
-    userId?: string
+    created_at?: string,
+    user_id?: string
 }
 
 export type RootLoaderData = {
     posts: Post[],
+}
+
+
+export type PostCardProps = {
+    post: Post
+}
+
+
+export type FeedProps = {
+    posts: Post[]
 }

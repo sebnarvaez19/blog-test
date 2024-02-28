@@ -1,12 +1,12 @@
-import { Post, User } from "../types";
+import { User } from "../types";
 import { useEffect, useState } from "react";
 import { getUser } from "../logic";
 
-export function useFetchUserByPost(post: Post) {
+export function useFetchUser(userId: string) {
     const [user, setUser] = useState<User>({
         username: "Testing Boy",
         email: "test@email.com",
-        createdAt: "27/02/2024"
+        created_at: "27/02/2024"
     })
     
     useEffect(() => {
@@ -15,8 +15,8 @@ export function useFetchUserByPost(post: Post) {
             setUser(data)
         }
     
-        findUser(post.userId as string)
-    }, [post])
+        findUser(userId)
+    }, [userId])
     
     return user
 }
