@@ -53,16 +53,13 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
                     3. Date ✔️
                     4. Tags ✔️
                     4. Body _rounded_ ✔️
-        3. Filter component ❌
-            1. Tag filter ❌
-                1. List of tags ❌
-                    1. Tag ❌
-            2. User filter ❌
-                1. List of users ❌
-                    1. User ❌
-            3. Date filter ❌
-                1. From filter ❌
-                2. To filter ❌
+        3. Filter component ✔️
+            1. Tag filter ✔️
+                1. List of tags ✔️
+                    1. Tag ✔️
+            2. User filter ✔️
+                1. List of users ✔️
+                    1. User ✔️
         4. Recent component ❌
             1. List of posts ❌
                 1. Mini-post ❌
@@ -83,3 +80,4 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
                 4. date created ✔️
             2. Bio component ✔️
 4. Support for images ❌
+5. Change beercss for Material UI
