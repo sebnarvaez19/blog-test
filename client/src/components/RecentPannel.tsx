@@ -9,7 +9,7 @@ const RecentPannel: React.FC<{ posts: Post[] }> = ({ posts }) => {
                     <h6>Recent activity</h6>
                 </div>
                 {posts.slice(0, 5).map((post) => (
-                    <div className="s12 center-align middle-align">
+                    <div key={post.id as string} className="s12 center-align middle-align">
                         <MiniPost post={post}/>
                     </div>
                 ))}
