@@ -1,11 +1,8 @@
 import React from "react";
 import { UserProps } from "../types";
 import moment from "moment";
-import { useFecthPostsByUser } from "../hooks/fetchData";
-import Feed from "./Feed";
 
 export const UserData: React.FC<UserProps> = ({ user }) => {
-    const posts = useFecthPostsByUser(user.id as string)
     const date = moment(user.created_at as string).fromNow()
 
     return (
@@ -36,15 +33,6 @@ export const UserData: React.FC<UserProps> = ({ user }) => {
                 {user.bio}
             </div>
             <br />
-            <div className="s12">
-                {posts.length ? (
-                    <div>
-                        <Feed posts={posts} />
-                    </div>
-                ) : (
-                    <div>No posts done yet 😒</div>
-                )}
-            </div>
         </div>
     )
 }

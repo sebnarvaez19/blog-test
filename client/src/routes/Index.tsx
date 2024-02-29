@@ -10,14 +10,14 @@ export default function Index() {
     return (
         <>
             <div className="grid">
-                <div className="s3 border center-align">
+                <div className="s3 center-align">
                     <FiltersPannel posts={posts as Post[]} setPosts={setPosts} />
                 </div>
-                <div className="s6 border center align">
+                <div className="s6 center-align">
                     <Feed posts={posts as Post[]} />
                 </div>
-                <div className="s3 border center align">
-                    <RecentPannel />
+                <div className="s3 center-align">
+                    <RecentPannel posts={posts as Post[]}/>
                 </div>
             </div>
         </>

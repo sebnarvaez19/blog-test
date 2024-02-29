@@ -40,8 +40,8 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
 ## TODO
 1. Create the mock data ✔️
 2. Create the API to work with data ✔️
-3. Create the blog client ❌
-    1. Create the main page ❌
+3. Create the blog client ✔️
+    1. Create the main page ✔️
         1. Header component ✔️
             1. Link to Home ✔️
             2. Search bar ✔️
@@ -60,9 +60,9 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
             2. User filter ✔️
                 1. List of users ✔️
                     1. User ✔️
-        4. Recent component ❌
-            1. List of posts ❌
-                1. Mini-post ❌
+        4. Recent component ✔️
+            1. List of posts ✔️
+                1. Mini-post ✔️
     2. Create a blog page ✔️
         1. Back button ✔️
         2. Post component ✔️
@@ -79,5 +79,6 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
                 3. email ✔️
                 4. date created ✔️
             2. Bio component ✔️
-4. Support for images ❌
-5. Change beercss for Material UI
+4. Functionality to create posts ❌
+5. Support for images ❌
+6. Change beercss for Material UI ❌

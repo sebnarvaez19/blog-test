@@ -6,8 +6,8 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom"
 import Root from "./routes/Root"
 import Index from "./routes/Index"
 import { postLoader, userLoader } from "./loader"
-import { Post } from "./routes/Post"
-import { User } from "./routes/User"
+import { PostPage } from "./routes/PostPage"
+import { UserPage } from "./routes/UserPage"
 
 const router = createBrowserRouter([
   {
@@ -15,8 +15,8 @@ const router = createBrowserRouter([
     element: <Root />,
     children: [
       {index: true, element: <Index />},
-      {path: "/posts/:postId", element: <Post />, loader: postLoader},
-      {path: "/users/:userId", element: <User />, loader: userLoader},
+      {path: "/posts/:postId", element: <PostPage />, loader: postLoader},
+      {path: "/users/:userId", element: <UserPage />, loader: userLoader},
     ]
   }
 ])
