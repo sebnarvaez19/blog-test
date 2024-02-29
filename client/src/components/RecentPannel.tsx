@@ -1,10 +1,7 @@
-import { useFechtPosts } from "../hooks/fetchData";
 import { Post } from "../types";
 import MiniPost from "./MiniPost";
 
-const RecentPannel: React.FC = () => {    
-    const [posts,] = useFechtPosts() as [Post[], void]
-
+const RecentPannel: React.FC<{ posts: Post[] }> = ({ posts }) => {    
     return (
         <article className="fill">
             <div className="grid">
