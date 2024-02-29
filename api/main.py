@@ -185,7 +185,7 @@ async def read_posts(*, session: Session = Depends(get_session), limit: int = 0,
     -------
         A list of posts.
     """
-    query = select(Post)
+    query = select(Post).order_by(column("created_at").desc())
     if limit:
         query = query.limit(limit)
 
