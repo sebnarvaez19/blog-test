@@ -8,6 +8,8 @@ import Index from "./routes/Index"
 import { postLoader, userLoader } from "./loader"
 import { PostPage } from "./routes/PostPage"
 import { UserPage } from "./routes/UserPage"
+import LoginPage from "./routes/LoginPage"
+import SignUpPage from "./routes/SignUpPage"
 
 const router = createBrowserRouter([
   {
@@ -18,6 +20,14 @@ const router = createBrowserRouter([
       {path: "/posts/:postId", element: <PostPage />, loader: postLoader},
       {path: "/users/:userId", element: <UserPage />, loader: userLoader},
     ]
+  },
+  {
+    path: "/login",
+    element: <LoginPage />
+  },
+  {
+    path: "/signup",
+    element: <SignUpPage />
   }
 ])
 
