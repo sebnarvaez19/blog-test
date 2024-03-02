@@ -1,4 +1,7 @@
 pydantic
-fastapi
 sqlmodel
+fastapi
 uvicorn[standard]
+passlib[bcrypt]
+python-multipart
+pyjwt
