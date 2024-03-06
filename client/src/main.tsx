@@ -14,6 +14,9 @@ import PostPage from "./routes/PostPage.tsx"
 import { postLoader, userLoader } from "./loaders.ts"
 import PublishPostPage from "./routes/PublishPostPage.tsx"
 import UserPage from "./routes/UserPage.tsx"
+import theme from "./theme.tsx"
+import { CssBaseline } from "@mui/material"
+import { ThemeProvider } from "@mui/material/styles"
 
 const router = createBrowserRouter([
     {
@@ -32,8 +35,11 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
-        <UserProvider>
-            <RouterProvider router={router} />
-        </UserProvider>
+        <ThemeProvider theme={theme}>
+            <UserProvider>
+                <CssBaseline />
+                <RouterProvider router={router} />
+            </UserProvider>
+        </ThemeProvider>
     </React.StrictMode>,
 )
