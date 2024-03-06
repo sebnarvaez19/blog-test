@@ -1,21 +1,32 @@
-import HomeButton from "./HomeButton"
-import MenuButton from "./MenuButton"
-import SearchBar from "./SearchBar"
+import React, { useContext } from "react"
+import { UserContext } from "../contexts/UserContext"
+import { AppBar, Toolbar } from "@mui/material"
+import HomeButton from "./buttons/HomeButton"
+import MenuButton from "./buttons/MenuButton"
+import ProfileButton from "./buttons/ProfileButton"
 
-export default function HeaderBar() {
+const HeaderBar: React.FC = () => {
+    const { token } = useContext(UserContext)
+
     return (
-        <header>
-            <div className="grid">
-                <div className="s1 center-align middle-align">
-                    <HomeButton />
-                </div>
-                <div className="s10 center-align middle-align">
-                    <SearchBar />
-                </div>
-                <div className="s1 center-align middle-align">
-                    <MenuButton />
-                </div>
-            </div>
-        </header>
+        <>
+            <AppBar variant="outlined" position="relative" elevation={0}>
+                <Toolbar>
+                    <div style={{marginRight: "auto"}}>
+                        <HomeButton />
+                    </div>
+
+                    <div>
+                        The search bar should be here
+                    </div>
+
+                    <div style={{marginLeft: "auto"}}>
+                        {token ? (<ProfileButton />) : (<MenuButton />)}
+                    </div>
+                </Toolbar>
+            </AppBar>
+        </>
     )
 }
+
+export default HeaderBar

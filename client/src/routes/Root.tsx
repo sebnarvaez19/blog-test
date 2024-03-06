@@ -1,14 +1,17 @@
+import React from "react"
 import { Outlet } from "react-router-dom"
+import { Box } from "@mui/material"
 import HeaderBar from "../components/HeaderBar"
 
-export default function Root() {
+const Root: React.FC = () => {
     return (
         <>
             <HeaderBar />
-            <br />
-            <div>
+            <Box margin={"10px"}>
                 <Outlet />
-            </div>
+            </Box>
         </>
     )
 }
+
+export default Root

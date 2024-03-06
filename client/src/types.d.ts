@@ -1,74 +1,69 @@
-export type User = {
-    id?: string,
-    name?: string,
-    username: string,
-    email: string,
-    bio?: string,
-    created_at: string
+export interface PostProps {
+    post: {
+        id: string,
+        created_at: string,
+        author_id: string,
+        title: string,
+        body: string,
+        tags: string,
+        author: {
+            id: string,
+            created_at: string,
+            username: string,
+            email: string,
+        }
+    }   
 }
 
-export type Post = {
-    id?: string,
+export interface FeedProps {
+    posts: PostProps[]
+}
+
+export interface submitLoginProps {
+    username: string,
+    password: string,
+    setErrorMessage: (message: string) => void,
+    setToken: (token: string) => void,
+}
+
+export interface submitRegisterProps extends submitLoginProps {
+    email: string
+}
+
+export interface TitleFieldProps {
+    title: string
+    setTitle: (title: string) => void
+}
+
+export interface TagsFIeldProps {
+    tags: string
+    setTags: (tags: string) => void
+}
+
+export interface BodyFieldProps {
+    body: string
+    setBody: (body: string) => void
+}
+
+export interface PublishPostFormPops extends TitleFieldProps, TagsFIeldProps, BodyFieldProps {
+    submitHandler: () => void
+}
+
+export interface publishPostProps {
     title: string,
-    body: string,
     tags: string,
-    created_at?: string,
-    user_id?: string
+    body: string,
+    token: string,
+    setErrorMessage: (message: string) => void,
 }
 
-export type RootLoaderData = {
-    posts: Post[],
-}
-
-
-export type PostCardProps = {
-    post: Post
-}
-
-export type UserProps = {
-    user: User
-}
-
-export type FeedProps = {
-    posts: Post[]
-}
-
-export type ParamsProps = {
-    params : {
-        postId: string
-        userId: string
+export interface UserProps {
+    user: {
+        id: string,
+        username: string,
+        email: string | null,
+        created_at: string,
+        avatar: string | null,
+        posts: {id: string, title: string, author_id: string, body: string}[]
     }
-}
-
-export type useFetchUsersByPostProps = {
-    userId: string,
-    username: string,
-    postCount: number
-}
-
-
-export type FilterProps = {
-    posts: Post[],
-    setPosts: function,
-    setFiltered: function
-}
-
-export type RemoveFiltersProps = {
-    setPosts: function,
-    setFiltered: function
-}
-
-export type FiltersPannelProps = {
-    posts: Post[],
-    setPosts: function,
-}
-
-export type UserRowProps = {
-    user: { userId: string, username: string, postCount: number },
-    clickHandle: function
-}
-
-export type TagRowProps = {
-    tag: [string, number],
-    clickHandle: function
 }
