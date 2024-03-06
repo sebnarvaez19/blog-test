@@ -1,4 +1,4 @@
-import { Button } from "@mui/material"
+import { Button } from "@mui/material-next"
 
 const LoginButton: React.FC = () => {
     return (

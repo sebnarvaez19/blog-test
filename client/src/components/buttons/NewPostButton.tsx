@@ -1,9 +1,9 @@
 import React from "react"
-import { Button } from "@mui/material"
+import { Button } from "@mui/material-next"
 
 const NewPostButton: React.FC = () => {    
     return (
-        <Button variant="contained" href="/posts/create">
+        <Button variant="filled" href="/posts/create">
             New Post
         </Button>
     )

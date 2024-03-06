@@ -1,4 +1,5 @@
-import { Box, Button, Grid } from "@mui/material"
+import { Box, Grid } from "@mui/material"
+import { Button } from "@mui/material-next"
 import React, { Dispatch, FormEventHandler, SetStateAction } from "react"
 import UsernameField from "../form_fields/UsernameField"
 import PasswordField from "../form_fields/passwordField"
@@ -29,7 +30,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ username, usernameHandler, 
                         <PasswordField password={password} passwordHandler={passwordHandler}/>
                     </Grid>
                     <Grid item xs={12}>
-                        <Button variant="contained" type="submit">
+                        <Button variant="filled" type="submit">
                             Register
                         </Button>
                     </Grid>
