@@ -1,24 +1,23 @@
-from contextlib import asynccontextmanager
-from typing import List, Optional
+from typing import List, Union, Optional
 from uuid import UUID
 
-from fastapi import FastAPI, HTTPException, Depends
+import jwt
+
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
+from passlib.hash import bcrypt
+
 from sqlmodel import Session, select, column
 
-from .models import User, Post
-from .database import create_db_and_tables, engine
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    create_db_and_tables()
-    yield
-
-
-async def get_session():
-    with Session(engine) as session:
-        yield session
+from api.models import User, UserCreate, UserRead, UserUpdate, UserReadWithPosts, \
+                   Post, PostCreate, PostRead, PostUpdate, PostReadWithUser
+from api.database import lifespan, get_session
+from api.services import Token, authenticate_user, create_token, \
+                     get_user_by_id, get_user_by_username, get_user_by_email, \
+                     get_post_by_id
+from api.config import CONFIG
 
 
 app = FastAPI(lifespan=lifespan)
@@ -33,109 +32,77 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-
-@app.get("/")
-async def main():
-    return {"message": "Hi, This is the API for test-blog go to the /docs/ path to read how to use it"}
+oauth2schema = OAuth2PasswordBearer(tokenUrl="api/token")
 
 
-@app.get("/users/", response_model=List[User])
+@app.get("/api")
+async def root():
+    return {"message": "Connection to API established"}
+
+
+@app.post("/api/token", response_model=Token)
+async def generate_token(*, form: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
+    user = await authenticate_user(form.username, form.password, session)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
+    return await create_token(user)
+
+
+@app.post("/api/users", response_model=Token)
+async def create_user(*, session: Session = Depends(get_session), user: UserCreate):
+    if await get_user_by_username(user.username, session):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username not available")
+    
+    if await get_user_by_email(user.email, session):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already used")
+
+    db_user = User(username=user.username, email=user.email, hashed_password=bcrypt.hash(user.password))
+    
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    
+    return await create_token(db_user)
+
+
+@app.get("/api/users", response_model=List[UserRead])
 async def read_users(*, session: Session = Depends(get_session), limit: int = 0, offset: int = 0):
-    """Get a list of user.
-
-    Parameters
-    ----------
-        limit: int, optional
-            How many users to get, by default 0 (get all users).
-        offset: int, optional
-            How many users to pass, by default 0 (do not pass any user).
-
-    Returns
-    -------
-        A list of users.
-    """
     query = select(User)
     if limit:
         query = query.limit(limit)
-
+    
     if offset:
         query = query.offset(offset)
-    
+
     users = session.exec(query).all()
 
     return users
 
 
-@app.post("/users/", response_model=User)
-async def create_user(*, session: Session = Depends(get_session), user: User):
-    """Create an user.
-
-    Parameters
-    ----------
-        user: User
-            The user to created, the parameters
-            username and email must be defined.
-
-    Returns
-    -------
-        The user created.
-    """
-    db_user = User.model_validate(user)
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
-
-    return db_user
-
-
-@app.get("/users/{user_id}", response_model=User)
+@app.get("/api/users/id={user_id}", response_model=UserReadWithPosts)
 async def read_user(*, session: Session = Depends(get_session), user_id: UUID):
-    """Get an user by UUID.
-
-    Parameters
-    ----------
-        post_id: UUID
-            The UUID of the user to find.
-
-    Returns
-    -------
-        The user to find.
-
-    Raises
-    ------
-        HTTPException
-            If the user is not found.
-    """
-    db_user = session.get(User, user_id)
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+    user = await get_user_by_id(user_id, session)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
-    return db_user
+    return user
 
 
-@app.patch("/users/{user_id}", response_model=User)
-async def update_user(*, session: Session = Depends(get_session), user_id: UUID, user: User):
-    """Update an user find it by UUID.
-
-    Parameters
-    ----------
-        user_id: UUID
-            The UUID of user to update.
-
-    Returns
-    -------
-        The user updated.
-
-    Raises
-    ------
-        HTTPException
-            If the user is not found.
-    """
-    db_user = session.get(User, user_id)
+@app.patch("/api/users/id={user_id}", response_model=UserRead)
+async def update_user(*, session: Session = Depends(get_session), user_id: UUID, user: UserUpdate):
+    db_user = await get_user_by_id(user_id, session)
     if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     user_data = user.model_dump(exclude_unset=True)
+    if "password" in user_data.keys():
+        new_password = user_data.pop("password")
+        if db_user.verify_password(new_password):
+            raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="New password should be different")
+
+        db_user.hashed_password = bcrypt.hash(new_password)
+
     for key, value in user_data.items():
         setattr(db_user, key, value)
 
@@ -146,72 +113,67 @@ async def update_user(*, session: Session = Depends(get_session), user_id: UUID,
     return db_user
 
 
-@app.delete("/users/{user_id}")
+@app.delete("/api/users/id={user_id}")
 async def delete_user(*, session: Session = Depends(get_session), user_id: UUID):
-    """Delete an user by UUID.
-
-    Parameters
-    ----------
-        user_id: UUID
-            The UUID of the user to delete.
-
-    Raises
-    ------
-        HTTPException
-            If the user is not found.
-    """
-    user = session.get(User, user_id)
+    user = await get_user_by_id(user_id, session)
     if not user:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     session.delete(user)
     session.commit()
 
-    return {"ok": True}
+    return {"status": "completed", "detail": "User has been deleted succesfully"}
 
 
-@app.get("/posts/", response_model=List[Post])
-async def read_posts(*, session: Session = Depends(get_session), limit: int = 0, offset: int = 0):
-    """Get a list of posts.
-
-    Parameters
-    ----------
-        limit: int, optional
-            How many posts to get, by default 0 (get all posts).
-        offset: int, optional
-            How many posts to pass, by default 0 (do not pass any post).
-
-    Returns
-    -------
-        A list of posts.
-    """
-    query = select(Post).order_by(column("created_at").desc())
-    if limit:
-        query = query.limit(limit)
-
-    if offset:
-        query = query.offset(offset)
-
-    posts = session.exec(query).all()
-
-    return posts
+@app.get("/api/users/me", response_model=UserReadWithPosts)
+async def read_current_user(*, session: Session = Depends(get_session), token: str = Depends(oauth2schema)):
+    try:
+        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
+        user = await get_user_by_id(user_data["id"], session)
+    except:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
+    return user
 
 
-@app.post("/posts/", response_model=Post)
-async def create_post(*, session: Session = Depends(get_session), post: Post):
-    """Create a post.
+@app.patch("/api/users/me", response_model=UserRead)
+async def update_current_user(*, session: Session = Depends(get_session), token: str = Depends(oauth2schema), user: UserUpdate):
+    try:
+        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
+        db_user = await update_user(session=session, user_id=user_data["id"], user=user)
+    except:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
+    return db_user
 
-    Parameters
-    ----------
-        post: Post
-            The post to created, the parameters
-            title, body, tags, and user_id must be defined.
 
-    Returns
-    -------
-        The post created.
-    """
-    db_post = Post.model_validate(post)
+@app.delete("/api/users/me")
+async def delete_current_user(*, session: Session = Depends(get_session), token: str = Depends(oauth2schema)):
+    try:
+        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
+        delete_message = await delete_user(session=session, user_id=user_data["id"])
+    except:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
+    return delete_message
+
+
+@app.post("/api/posts", response_model=PostRead)
+async def create_post(*, session: Session = Depends(get_session), token: str = Depends(oauth2schema), post: PostCreate):
+    try:
+        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
+        user = await get_user_by_id(user_data["id"], session)
+    except:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    db_post = Post(
+        title=post.title,
+        body=post.body,
+        tags=post.tags,
+        author_id=UUID(user_data["id"]),
+        author=user
+    )         
+
     session.add(db_post)
     session.commit()
     session.refresh(db_post)
@@ -219,53 +181,34 @@ async def create_post(*, session: Session = Depends(get_session), post: Post):
     return db_post
 
 
-@app.get("/posts/{post_id}", response_model=Post)
+@app.get("/api/posts", response_model=List[PostReadWithUser])
+async def read_posts(*, session: Session = Depends(get_session), limit: int = 0, offset: int = 0):
+    query = select(Post)
+    if limit:
+        query = query.limit(limit)
+    if offset:
+        query = query.offset(offset)
+
+    posts = session.exec(query.order_by(column("created_at").desc())).all()
+
+    return posts
+
+
+@app.get("/api/posts/id={post_id}", response_model=PostReadWithUser)
 async def read_post(*, session: Session = Depends(get_session), post_id: UUID):
-    """Get a post by UUID.
-
-    Parameters
-    ----------
-        post_id: UUID
-            The UUID of the post to find.
-
-    Returns
-    -------
-        The post to find.
-
-    Raises
-    ------
-        HTTPException
-            If the post is not found.
-    """
-    db_post = session.get(Post, post_id)
-    if not db_post:
-        raise HTTPException(status_code=404, detail="Post not found")
+    post = await get_post_by_id(post_id, session)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     
-    return db_post
+    return post
 
 
-@app.patch("/posts/{post_id}", response_model=Post)
-async def update_post(*, session: Session = Depends(get_session), post_id: UUID, post: Post):
-    """Update a post find it by UUID.
-
-    Parameters
-    ----------
-        post_id: UUID
-            The UUID of post to update.
-
-    Returns
-    -------
-        The post updated.
-
-    Raises
-    ------
-        HTTPException
-            If the post is not found.
-    """
-    db_post = session.get(Post, post_id)
+@app.patch("/api/posts/id={post_id}")
+async def update_post(*, session: Session = Depends(get_session), post_id: UUID, post: PostUpdate):
+    db_post = await get_post_by_id(post_id, session)
     if not db_post:
-        raise HTTPException(status_code=404, detail="Post not found")
-
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    
     post_data = post.model_dump(exclude_unset=True)
     for key, value in post_data.items():
         setattr(db_post, key, value)
@@ -277,79 +220,60 @@ async def update_post(*, session: Session = Depends(get_session), post_id: UUID,
     return db_post
 
 
-@app.delete("/posts/{post_id}")
+@app.delete("/api/posts/id={post_id}")
 async def delete_post(*, session: Session = Depends(get_session), post_id: UUID):
-    """Delete a post by UUID.
-
-    Parameters
-    ----------
-        post_id: UUID
-            The UUID of the post to delete.
-
-    Raises
-    ------
-        HTTPException
-            If the post is not found.
-    """
-    post = session.get(Post, post_id)
+    post = await get_post_by_id(post_id, session)
     if not post:
-        raise HTTPException(status_code=404, detail="Post not found")
-
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    
     session.delete(post)
     session.commit()
 
-    return {"ok": True}
+    return {"status": "completed", "detail": "Post has been deleted succesfully"}
 
 
-@app.get("/users/{user_id}/posts/", response_model=List[Post])
-async def read_user_posts(*, session: Session = Depends(get_session), user_id: UUID):
-    """Get all posts for a given user.
-
-    Parameters
-    ----------
-        user_id: UUID
-            The UUID of the user to get posts for.
-
-    Returns
-    -------
-        A list of Post objects.
-
-    Raises
-    ------
-        HTTPException
-            If the user is not found.
-    """
-    user = session.get(User, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    posts = session.exec(select(Post).where(Post.user_id == user.id)).all()
-
-    return posts
-
-
-@app.get("/posts/tags/{tags}", response_model=List[Post])
-async def read_posts_by_tags(*, session: Session = Depends(get_session), tags: str):
-    """
-    Read posts by tags.
-
-    Parameters
-    ----------
-    tags: str
-        The tags to search for. Multiple tags can be provided separated by a comma.
-
-    Returns
-    -------
-    List[Post]
-        The posts with the given tags.
-    """
-    query = select(Post)
+@app.patch("/api/users/me/posts/id={post_id}", response_model=PostReadWithUser)
+async def update_current_user_post(*,session: Session = Depends(get_session), token: str = Depends(oauth2schema), post_id: UUID, post: PostUpdate):
+    try:
+        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
+        user = await get_user_by_id(user_data["id"], session)
+    except:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
-    if tags != "all": 
-        list_of_tags = [tag[1:] if tag[0] == " " else tag for tag in tags.split(",")]
-        for tag in list_of_tags:
-            query = query.filter(column("tags").contains(tag))
+    db_post = await get_post_by_id(post_id, session)
+    if not db_post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    
+    if db_post.author.id != user.id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Only the post owner can edit it")
+    
+    post_data = post.model_dump(exclude_unset=True)
+    for key, value in post_data.items():
+        setattr(db_post, key, value)
 
-    posts = session.exec(query).all()
+    session.add(db_post)
+    session.commit()
+    session.refresh(db_post)
 
-    return posts
+    return db_post
+
+
+@app.delete("/api/users/me/posts/id={post_id}")
+async def delete_current_user_post(*, session: Session = Depends(get_session), token: str = Depends(oauth2schema), post_id: UUID):
+    try:
+        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
+        user = await get_user_by_id(user_data["id"], session)
+    except:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
+    post = await get_post_by_id(post_id, session)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    
+    if post.author.id != user.id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Only the post owner can delete it")
+    
+    session.delete(post)
+    session.commit()
+
+    return {"status": "completed", "detail": "Post has been deleted succesfully"}
