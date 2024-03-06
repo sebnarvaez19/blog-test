@@ -67,3 +67,12 @@ export interface UserProps {
         posts: {id: string, title: string, author_id: string, body: string}[]
     }
 }
+
+export interface SearchFieldProps {
+    query: string,
+    setQuery: (newQuery: string) => void,
+}
+
+export interface SearchBarProps extends SearchFieldProps {
+    submitHandler: () => void
+}
