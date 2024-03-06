@@ -1,45 +1,103 @@
-import { User, Post } from "./types"
+import { PostProps, UserProps, publishPostProps, submitLoginProps, submitRegisterProps } from "./types"; 
 
-const userAPI: string = "http://127.0.0.1:8000/users/"
-const postAPI: string = "http://127.0.0.1:8000/posts/"
+export function decodeJWT(token: string) {
+    const base64Url = token.split(".")[1]
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+    const jsonPayload = decodeURIComponent(atob(base64).split("").map(function(c) {
+        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+    }).join(""))
 
-export async function getUsers(): Promise<User[]> {
-    const response = await fetch(userAPI)
+    return JSON.parse(jsonPayload);
+}
+
+export async function getPosts(): Promise<PostProps[]> {
+    const requestOptions = {
+        "method": "GET",
+        "headers": {"Content-Type": "application/json"},
+    }
+
+    const response = await fetch("/api/posts", requestOptions)
     const data = await response.json()
 
     return data
 }
 
-export async function getPosts(): Promise<Post[]> {
-    const response = await fetch(postAPI)
+export async function getPost(postId: string): Promise<PostProps> {
+    const requestOptions = {
+        "method": "GET",
+        "headers": {"Content-Type": "application/json"},
+    }
+
+    const response = await fetch(`/api/posts/id=${postId}`, requestOptions)
     const data = await response.json()
 
     return data
 }
 
-export async function getUser(userId: string): Promise<User> {
-    const response = await fetch(userAPI + `${userId}`)
+export async function submitLogin(props: submitLoginProps): Promise<void> {
+    const { username, password, setErrorMessage, setToken } = props
+    
+    const requestOptions = {
+        "method": "POST",
+        "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+        "body": JSON.stringify(`grant_type=&username=${username}&password=${password}&scope=&client_id=&client_secret=`),
+    }
+
+    const response = await fetch("/api/token", requestOptions)
     const data = await response.json()
 
-    return data
+    if (!response.ok) {
+        setErrorMessage(data.detail)
+    } else {
+        setToken(data.access_token)
+    }
 }
 
-export async function getPost(postId: string): Promise<Post> {
-    const response = await fetch(postAPI + `${postId}`)
+export async function submitRegister(props: submitRegisterProps): Promise<void> {
+    const { username, email, password, setErrorMessage, setToken } = props
+
+    const requestOptions = {
+        "method": "POST",
+        "headers": {"Content-Type": "application/json"},
+        "body": JSON.stringify({"username": username, "email": email, "password": password}),
+    }
+
+    const response = await fetch("/api/users", requestOptions)
     const data = await response.json()
 
-    return data
+    if (!response.ok) {
+        setErrorMessage(data.detail)
+    } else {
+        setToken(data.access_token)
+    }
 }
 
-export async function getPostsByUser(userId: string): Promise<Post[]> {
-    const response = await fetch(userAPI + `${userId}/posts/`)
+export async function publishPost(props: publishPostProps) {
+    const { title, tags, body, token, setErrorMessage } = props
+
+    const requestOptions = {
+        "method": "POST",
+        "headers": {"Content-Type": "application/json", "Authorization": "Bearer " + token},
+        "body": JSON.stringify({"title": title, "tags": tags, "body": body}),
+    }
+
+    const response = await fetch("/api/posts", requestOptions)
     const data = await response.json()
 
-    return data
+    if (!response.ok) {
+        setErrorMessage(data.detail)
+    } else {
+        return data.id
+    }
 }
 
-export async function getPostsByTags(tags: string) {
-    const response = await fetch(postAPI + `tags/${tags}`)
+export async function getUser(userId: string): Promise<UserProps> {
+    const requestOptions = {
+        "method": "GET",
+        "headers": {"Content-Type": "application/json"},
+    }
+
+    const response = await fetch(`/api/users/id=${userId}`, requestOptions)
     const data = await response.json()
 
     return data

@@ -1,20 +1,23 @@
+import { Box, Typography } from "@mui/material"
 import React from "react"
-import { Post, FeedProps } from "../types"
-import PostCard from "./PostCard"
+import PostCard from "./post_variants/PostCard"
+import { FeedProps } from "../types"
 
 const Feed: React.FC<FeedProps> = ({ posts }) => {
     return (
-        <div className="grid">
-            {posts.length ? (
-                posts.map((post: Post) => (
-                    <div key={post.id} className="s12 center-align middle-align">
-                        <PostCard post={post} />
-                    </div>
+        <Box>
+            {posts && posts.length > 0 ? (
+                posts.map((post) => (
+                    <PostCard key={post.id} post={post} />
                 ))
             ) : (
-                <div className="s12 center-align middle-align">No posts made</div>
+                <Box display="flex" alignItems="center" justifyContent="center" minWidth="100">
+                    <Typography variant="body2">
+                        There are no posts 😢
+                    </Typography>
+                </Box>
             )}
-        </div>
+        </Box>
     )
 }
 

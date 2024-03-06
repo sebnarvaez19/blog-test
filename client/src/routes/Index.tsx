@@ -1,31 +1,28 @@
-import React from "react";
-import Feed from "../components/Feed";
-import FiltersPannel from "../components/FiltersPannel";
-import RecentPannel from "../components/RecentPannel";
-import { useFechtPosts } from "../hooks/fetchData";
-import { Post } from "../types";
-import NewPostButton from "../components/NewPostButton";
-import { useAuth } from "../auth/AuthProvider";
+import { Grid } from "@mui/material"
+import React from "react"
+import Filters from "../components/Filters"
+import Recent from "../components/Recent"
+import Feed from "../components/Feed"
+import { useFechtPosts } from "../hooks/FetchData"
+import LoginOrAdd from "../components/auth_required/LoginOrAdd"
 
 const Index: React.FC = () => {
-    const [posts, setPosts] = useFechtPosts()
-    const authUser = useAuth()
+    const [posts, ] = useFechtPosts()
 
     return (
-        <div className="grid">
-            <div className="s3 center-align">
-                <FiltersPannel posts={posts as Post[]} setPosts={setPosts} />
-            </div>
-            <div className="s6 center-align">
-                {authUser.authenticated && (
-                    <NewPostButton/>
-                )}
-                <Feed posts={posts as Post[]} />
-            </div>
-            <div className="s3 center-align">
-                <RecentPannel posts={posts as Post[]}/>
-            </div>
-        </div>
+
+        <Grid container direction="row" justifyContent="center" alignItems="flex-start" spacing={1}>
+            <Grid item xs={3} container justifyContent="flex-end">
+                <Filters />
+            </Grid>
+            <Grid item xs={6}>
+                <LoginOrAdd />
+                <Feed posts={posts}/>
+            </Grid>
+            <Grid item xs={3}>
+                <Recent />
+            </Grid>
+        </Grid>
     )
 }
 
