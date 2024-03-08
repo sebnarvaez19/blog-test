@@ -2,9 +2,10 @@ import React from "react"
 import { TextField } from "@mui/material"
 import { TagsFIeldProps } from "../../types"
 
-const TagsField: React.FC<TagsFIeldProps> = ({ tags, setTags }) => {
+const TagsField: React.FC<TagsFIeldProps> = ({ tags, setTags, width }) => {
     return (
         <TextField
+            size="small"
             type="text"
             label="Tags"
             placeholder="Tags separated by ',' e.g.: tag1,tag2"
@@ -12,7 +13,7 @@ const TagsField: React.FC<TagsFIeldProps> = ({ tags, setTags }) => {
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             required
-            sx={{width: "60vw"}}
+            sx={{width: width}}
         />
     )
 }

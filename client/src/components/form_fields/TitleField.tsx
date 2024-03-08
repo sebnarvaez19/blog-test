@@ -2,7 +2,7 @@ import React from "react"
 import { TitleFieldProps } from "../../types"
 import { TextField } from "@mui/material"
 
-const TitleField: React.FC<TitleFieldProps> = ({ title, setTitle }) => {
+const TitleField: React.FC<TitleFieldProps> = ({ title, setTitle, width }) => {
     return (
         <TextField
             type="text"
@@ -11,7 +11,7 @@ const TitleField: React.FC<TitleFieldProps> = ({ title, setTitle }) => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            sx={{width: "60vw"}}
+            sx={{width: width}}
         />
     )
 }

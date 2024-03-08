@@ -33,16 +33,19 @@ export interface submitRegisterProps extends submitLoginProps {
 export interface TitleFieldProps {
     title: string
     setTitle: (title: string) => void
+    width: string
 }
 
 export interface TagsFIeldProps {
     tags: string
     setTags: (tags: string) => void
+    width: string
 }
 
 export interface BodyFieldProps {
     body: string
     setBody: (body: string) => void
+    width: string
 }
 
 export interface PublishPostFormPops extends TitleFieldProps, TagsFIeldProps, BodyFieldProps {

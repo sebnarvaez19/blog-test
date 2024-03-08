@@ -2,7 +2,7 @@ import React from "react"
 import { BodyFieldProps } from "../../types"
 import { TextField } from "@mui/material"
 
-const BodyField: React.FC<BodyFieldProps> = ({ body, setBody }) => {
+const BodyField: React.FC<BodyFieldProps> = ({ body, setBody, width }) => {
     return (
         <TextField
             multiline
@@ -11,7 +11,7 @@ const BodyField: React.FC<BodyFieldProps> = ({ body, setBody }) => {
             value={body}
             onChange={(e) => setBody(e.target.value)}
             required
-            sx={{width: "60vw"}}
+            sx={{width: width}}
         />
     )
 }
