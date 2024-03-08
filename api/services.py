@@ -3,9 +3,9 @@ from uuid import UUID
 
 import jwt
 
-from sqlmodel import Session, select, or_
-
+from fastapi import HTTPException, status
 from pydantic import BaseModel
+from sqlmodel import Session, select, or_
 
 from api.models import User, Post
 from api.config import CONFIG
@@ -14,12 +14,6 @@ from api.config import CONFIG
 class Token(BaseModel):
     access_token: str
     token_type: str
-
-
-class Search(BaseModel):
-    posts_by_title: Optional[Sequence[Post]] = None
-    posts_by_tags: Optional[Sequence[Post]] = None
-    posts_by_body: Optional[Sequence[Post]] = None
 
 
 async def create_token(user: User) -> Token:
@@ -31,7 +25,7 @@ async def create_token(user: User) -> Token:
     return Token(access_token=token, token_type="bearer")
 
 
-async def get_user(query: Union[UUID, str], param: Literal["id", "username", "email"], session: Session) -> Optional[User]:
+async def get_user(session: Session, query: Union[UUID, str], param: Literal["id", "username", "email"] = "id") -> Optional[User]:
     if param == "id":
         statement = select(User).where(User.id == query)
     if param == "username":
@@ -44,25 +38,42 @@ async def get_user(query: Union[UUID, str], param: Literal["id", "username", "em
     return user
 
 
-async def get_post(query: Union[UUID, str], param: Literal["id", "title", "body", "tags"], session: Session) -> Union[Sequence[Post], Post, None]:
-    if not param == "id" and isinstance(query, str):
-        words = query.split()
-        if param == "title":
-            filters = [Post.title.ilike(f"%{word}%") for word in words]             # type: ignore
-        if param == "tags":
-            filters = [Post.tags.ilike(f"%{word}%") for word in words]              # type: ignore
-        if param == "body":
-            filters = [Post.body.ilike(f"%{word}%") for word in words]              # type: ignore
-        
-        posts = session.exec(select(Post).where(or_(*filters))).all()
-    else:
-        posts = session.get(Post, query)
+async def get_post(session: Session, query: Union[UUID, str], param: Literal["id", "title", "body", "tags"] = "id") -> Optional[Post]:
+    if param == "id":
+        statement = select(Post).where(Post.id == query)
+    if param == "title":
+        statement = select(Post).where(Post.title == query)
+    if param == "tags":
+        statement = select(Post).where(Post.tags == query)
+    if param == "body":
+        statement = select(Post).where(Post.body == query)
 
-    return posts
+    post = session.exec(statement).one_or_none()
+
+    return post
 
 
-async def authenticate_user(username: str, password: str, session: Session) -> Union[User, Literal[False]]:
-    user = await get_user(username, "username", session)
+async def get_post_from_current_user(session: Session, token: str, post_id: UUID) -> Post:
+    try:
+        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
+        user = await get_user(session, user_data["id"])
+        assert isinstance(user, User)
+    except:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
+    post = await get_post(session, post_id)
+    if not (post and isinstance(post, Post)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
+    if post.author.id != user.id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Only the post owner can delete it")
+    
+    return post
+    
+
+
+async def authenticate_user(session: Session, username: str, password: str) -> Union[User, Literal[False]]:
+    user = await get_user(session, username, "username")
     if not user:
         return False
     
@@ -70,3 +81,17 @@ async def authenticate_user(username: str, password: str, session: Session) -> U
         return False
     
     return user
+
+
+async def search_post(session: Session, query: str) -> Sequence[Post]:
+    words = query.split()
+
+    title_filters = [Post.title.ilike(f"%{word}%") for word in words]           # type: ignore
+    tags_filters = [Post.tags.ilike(f"%{word}%") for word in words]             # type: ignore
+    body_filters = [Post.body.ilike(f"%{word}%") for word in words]             # type: ignore
+
+    filters = title_filters + tags_filters + body_filters
+    statement = select(Post).where(or_(*filters))
+    posts = session.exec(statement).all()
+
+    return posts

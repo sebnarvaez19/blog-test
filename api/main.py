@@ -13,7 +13,7 @@ from sqlmodel import Session, select, column
 
 from api.models import User, UserCreate, UserRead, UserUpdate, UserReadWithPosts, Post, PostCreate, PostRead, PostUpdate, PostReadWithUser
 from api.database import lifespan, get_session
-from api.services import Token, Search, authenticate_user, create_token, get_post, get_user
+from api.services import Token, authenticate_user, create_token, get_post, get_user, get_post_from_current_user, search_post
 from api.config import CONFIG
 
 
@@ -39,7 +39,7 @@ async def root():
 
 @app.post("/api/token", response_model=Token)
 async def generate_token(*, form: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
-    user = await authenticate_user(form.username, form.password, session)
+    user = await authenticate_user(session, form.username, form.password)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
@@ -48,10 +48,10 @@ async def generate_token(*, form: OAuth2PasswordRequestForm = Depends(), session
 
 @app.post("/api/users", response_model=Token)
 async def create_user(*, session: Session = Depends(get_session), user: UserCreate):
-    if await get_user(user.username, "username", session):
+    if await get_user(session, user.username, "username"):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username not available")
     
-    if await get_user(user.email, "email", session):
+    if await get_user(session, user.email, "email"):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already used")
 
     db_user = User(username=user.username, email=user.email, hashed_password=bcrypt.hash(user.password))
@@ -79,7 +79,7 @@ async def read_users(*, session: Session = Depends(get_session), limit: int = 0,
 
 @app.get("/api/users/id={user_id}", response_model=UserReadWithPosts)
 async def read_user(*, session: Session = Depends(get_session), user_id: UUID):
-    user = await get_user(user_id, "id", session)
+    user = await get_user(session, user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
@@ -88,7 +88,7 @@ async def read_user(*, session: Session = Depends(get_session), user_id: UUID):
 
 @app.patch("/api/users/id={user_id}", response_model=UserRead)
 async def update_user(*, session: Session = Depends(get_session), user_id: UUID, user: UserUpdate):
-    db_user = await get_user(user_id, "id", session)
+    db_user = await get_user(session, user_id)
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
@@ -112,7 +112,7 @@ async def update_user(*, session: Session = Depends(get_session), user_id: UUID,
 
 @app.delete("/api/users/id={user_id}")
 async def delete_user(*, session: Session = Depends(get_session), user_id: UUID):
-    user = await get_user(user_id, "id", session)
+    user = await get_user(session, user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
@@ -126,7 +126,7 @@ async def delete_user(*, session: Session = Depends(get_session), user_id: UUID)
 async def read_current_user(*, session: Session = Depends(get_session), token: str = Depends(oauth2schema)):
     try:
         user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
-        user = await get_user(user_data["id"], "id", session)
+        user = await get_user(session, user_data["id"])
     except:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
@@ -159,7 +159,7 @@ async def delete_current_user(*, session: Session = Depends(get_session), token:
 async def create_post(*, session: Session = Depends(get_session), token: str = Depends(oauth2schema), post: PostCreate):
     try:
         user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
-        user = await get_user(user_data["id"], "id", session)
+        user = await get_user(session, user_data["id"])
     except:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
@@ -193,7 +193,7 @@ async def read_posts(*, session: Session = Depends(get_session), limit: int = 0,
 
 @app.get("/api/posts/id={post_id}", response_model=PostReadWithUser)
 async def read_post(*, session: Session = Depends(get_session), post_id: UUID):
-    post = await get_post(post_id, "id", session)
+    post = await get_post(session, post_id)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     
@@ -202,7 +202,7 @@ async def read_post(*, session: Session = Depends(get_session), post_id: UUID):
 
 @app.patch("/api/posts/id={post_id}")
 async def update_post(*, session: Session = Depends(get_session), post_id: UUID, post: PostUpdate):
-    db_post = await get_post(post_id, "id", session)
+    db_post = await get_post(session, post_id)
     if not db_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     
@@ -219,7 +219,7 @@ async def update_post(*, session: Session = Depends(get_session), post_id: UUID,
 
 @app.delete("/api/posts/id={post_id}")
 async def delete_post(*, session: Session = Depends(get_session), post_id: UUID):
-    post = await get_post(post_id, "id", session)
+    post = await get_post(session, post_id)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     
@@ -231,24 +231,7 @@ async def delete_post(*, session: Session = Depends(get_session), post_id: UUID)
 
 @app.patch("/api/users/me/posts/id={post_id}", response_model=PostReadWithUser)
 async def update_current_user_post(*,session: Session = Depends(get_session), token: str = Depends(oauth2schema), post_id: UUID, post: PostUpdate):
-    try:
-        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
-        user = await get_user(user_data["id"], "id", session)
-    except:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    
-    db_post = await get_post(post_id, "id", session)
-    if not db_post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-    
-    if not isinstance(db_post, Post):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-    
-    if not isinstance(user, User):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-
-    if db_post.author.id != user.id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Only the post owner can edit it")
+    db_post = await get_post_from_current_user(session, token, post_id)
     
     post_data = post.model_dump(exclude_unset=True)
     for key, value in post_data.items():
@@ -263,24 +246,7 @@ async def update_current_user_post(*,session: Session = Depends(get_session), to
 
 @app.delete("/api/users/me/posts/id={post_id}")
 async def delete_current_user_post(*, session: Session = Depends(get_session), token: str = Depends(oauth2schema), post_id: UUID):
-    try:
-        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
-        user = await get_user(user_data["id"], "id", session)
-    except:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    
-    post = await get_post(post_id, "id", session)
-    if not post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-    
-    if not isinstance(post, Post):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-    
-    if not isinstance(user, User):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-
-    if post.author.id != user.id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Only the post owner can delete it")
+    post = await get_post_from_current_user(session, token, post_id)
     
     session.delete(post)
     session.commit()
@@ -288,12 +254,8 @@ async def delete_current_user_post(*, session: Session = Depends(get_session), t
     return {"status": "completed", "detail": "Post has been deleted succesfully"}
 
 
-@app.get("/api/search/q={query}", response_model=Search)
+@app.get("/api/search/q={query}", response_model=Sequence[Post])
 async def search(*, session: Session = Depends(get_session), query: str):
-    search_instance = Search(
-        posts_by_title=await get_post(query, param="title", session=session),       # type: ignore
-        posts_by_tags=await get_post(query, param="tags", session=session),         # type: ignore
-        posts_by_body=await get_post(query, param="body", session=session),         # type: ignore
-    )
+    posts = await search_post(session, query)
 
-    return search_instance
+    return posts
