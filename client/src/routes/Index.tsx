@@ -1,16 +1,15 @@
 import { Grid } from "@mui/material"
-import React from "react"
+import React, { useContext } from "react"
 import Filters from "../components/Filters"
 import Recent from "../components/Recent"
 import Feed from "../components/Feed"
-import { useFechtPosts } from "../hooks/FetchData"
 import LoginOrAdd from "../components/auth_required/LoginOrAdd"
+import PostContext from "../contexts/PostContext"
 
 const Index: React.FC = () => {
-    const [posts, ] = useFechtPosts()
-
+    const { posts } = useContext(PostContext)
+    
     return (
-
         <Grid container direction="row" justifyContent="center" alignItems="flex-start" spacing={1}>
             <Grid item xs={3} container justifyContent="flex-end">
                 <Filters />

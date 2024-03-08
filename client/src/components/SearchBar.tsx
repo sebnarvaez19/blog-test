@@ -1,12 +1,22 @@
-import React, { FormEventHandler, useEffect, useState } from "react"
+import React, { FormEventHandler, useCallback, useContext, useEffect, useState } from "react"
 import SearchField from "./form_fields/SearchField"
+import { getPosts, searchPosts } from "../logic"
+import PostContext from "../contexts/PostContext"
 
 const SearchBar: React.FC = () => {
+    const { setPosts } = useContext(PostContext)
     const [query, setQuery] = useState<string>("")
 
-    function submitHandler() {
-        console.log(`You pressed Enter key ✔️. Your query is: ${query}`)
-    }
+    const submitHandler = useCallback(async () => {
+        let filteredPosts
+        if (query) {
+            filteredPosts = await searchPosts(query)
+        } else {
+            filteredPosts = await getPosts()
+        }
+
+        setPosts(filteredPosts)
+    }, [query, setPosts])
 
     useEffect(() => {
         function keyDownHandler(e: FormEventHandler<HTMLFormElement>) {

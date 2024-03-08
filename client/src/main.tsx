@@ -15,6 +15,8 @@ import PostPage from "./routes/PostPage.tsx"
 import PublishPostPage from "./routes/PublishPostPage.tsx"
 
 import { postLoader, userLoader } from "./loaders.ts"
+import { useFechtPosts } from "./hooks/FetchData.ts"
+import PostContext from "./contexts/PostContext.tsx"
 
 const router = createBrowserRouter([
     {
@@ -31,14 +33,22 @@ const router = createBrowserRouter([
     },
 ])
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-        {/* <ThemeProvider theme={theme}> */}
-            <UserProvider>
-                <CssBaseline>
-                    <RouterProvider router={router} />
-                </CssBaseline>
-            </UserProvider>
-        {/* </ThemeProvider> */}
-    </React.StrictMode>,
-)
+
+const Main: React.FC = () => {
+    const { posts, setPosts } = useFechtPosts()
+
+    return (
+        <React.StrictMode>
+            <PostContext.Provider value={{ posts, setPosts }}>
+                <UserProvider>
+                    <CssBaseline>
+                        <RouterProvider router={router} />
+                    </CssBaseline>
+                </UserProvider>
+            </PostContext.Provider>
+        </React.StrictMode>
+    )
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")!).render(<Main />)

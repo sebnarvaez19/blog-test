@@ -14,5 +14,5 @@ export function useFechtPosts() {
         findPosts()
     }, [])
 
-    return [posts, setPosts]
+    return { posts, setPosts }
 }

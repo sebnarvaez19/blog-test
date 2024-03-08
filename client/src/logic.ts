@@ -34,6 +34,18 @@ export async function getPost(postId: string): Promise<PostProps> {
     return data
 }
 
+export async function searchPosts(query: string): Promise<PostProps[]> {
+    const requestOptions = {
+        "method": "GET",
+        "headers": {"Content-Type": "application/json"},
+    }
+
+    const response = await fetch(`/api/search/q=${query}`, requestOptions)
+    const data = await response.json()
+
+    return data
+}
+
 export async function submitLogin(props: submitLoginProps): Promise<void> {
     const { username, password, setErrorMessage, setToken } = props
     
