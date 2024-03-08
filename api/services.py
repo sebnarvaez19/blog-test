@@ -5,7 +5,7 @@ import jwt
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel
-from sqlmodel import Session, select, or_
+from sqlmodel import Session, column, select, or_
 
 from api.models import User, Post
 from api.config import CONFIG
@@ -92,6 +92,6 @@ async def search_post(session: Session, query: str) -> Sequence[Post]:
 
     filters = title_filters + tags_filters + body_filters
     statement = select(Post).where(or_(*filters))
-    posts = session.exec(statement).all()
+    posts = session.exec(statement.order_by(column("created_at").desc())).all()
 
     return posts
