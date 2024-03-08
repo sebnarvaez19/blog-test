@@ -4,9 +4,10 @@ import { TextField } from "@mui/material"
 interface UsernameFieldProps {
     username: string | null,
     usernameHandler: Dispatch<SetStateAction<string>>,
+    size: string
 }
 
-const UsernameField: React.FC<UsernameFieldProps> = ({ username, usernameHandler }) => {
+const UsernameField: React.FC<UsernameFieldProps> = ({ username, usernameHandler, size }) => {
     return (
         <TextField
             type="text"
@@ -15,6 +16,7 @@ const UsernameField: React.FC<UsernameFieldProps> = ({ username, usernameHandler
             value={username}
             onChange={(e) => usernameHandler(e.target.value)}
             required
+            size={size}
         />
     )
 }

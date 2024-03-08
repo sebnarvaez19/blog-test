@@ -18,7 +18,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ username, usernameHandler, passwo
             <form method="POST" onSubmit={handleSubmit}>
                 <Grid container direction="column" justifyContent="center" alignItems="center" spacing={3}>
                     <Grid item xs={12}>
-                        <UsernameField username={username} usernameHandler={usernameHandler}/>
+                        <UsernameField username={username} usernameHandler={usernameHandler} size="medium"/>
                     </Grid>
                     <Grid item xs={12}>
                         <PasswordField password={password} passwordHandler={passwordHandler}/>

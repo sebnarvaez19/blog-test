@@ -34,13 +34,14 @@ export async function getPost(postId: string): Promise<PostProps> {
     return data
 }
 
-export async function searchPosts(query: string): Promise<PostProps[]> {
+export async function searchPosts(query: string, field: string | null): Promise<PostProps[]> {
     const requestOptions = {
         "method": "GET",
         "headers": {"Content-Type": "application/json"},
     }
 
-    const response = await fetch(`/api/search/q=${query}`, requestOptions)
+    const queryString = field ? `/api/search/q=${query}?field=${field}`: `/api/search/q=${query}`
+    const response = await fetch(queryString, requestOptions)
     const data = await response.json()
 
     return data
