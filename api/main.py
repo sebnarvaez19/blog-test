@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Literal, Optional, Sequence
 from uuid import UUID
 
 import jwt
@@ -255,7 +255,7 @@ async def delete_current_user_post(*, session: Session = Depends(get_session), t
 
 
 @app.get("/api/search/q={query}", response_model=Sequence[Post])
-async def search(*, session: Session = Depends(get_session), query: str):
-    posts = await search_post(session, query)
+async def search(*, session: Session = Depends(get_session), query: str, field: Optional[Literal["title", "tags", "body"]] = None):
+    posts = await search_post(session, query, field)
 
     return posts

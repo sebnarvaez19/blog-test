@@ -83,14 +83,22 @@ async def authenticate_user(session: Session, username: str, password: str) -> U
     return user
 
 
-async def search_post(session: Session, query: str) -> Sequence[Post]:
+async def search_post(session: Session, query: str, field: Optional[Literal["title", "tags", "body"]] = None) -> Sequence[Post]:
     words = query.split()
 
     title_filters = [Post.title.ilike(f"%{word}%") for word in words]           # type: ignore
     tags_filters = [Post.tags.ilike(f"%{word}%") for word in words]             # type: ignore
     body_filters = [Post.body.ilike(f"%{word}%") for word in words]             # type: ignore
 
-    filters = title_filters + tags_filters + body_filters
+    if not field:
+        filters = title_filters + tags_filters + body_filters
+    if field == "title":
+        filters = title_filters
+    if field == "tags":
+        filters = tags_filters
+    if field == "body":
+        filters = body_filters
+    
     statement = select(Post).where(or_(*filters))
     posts = session.exec(statement.order_by(column("created_at").desc())).all()
 
