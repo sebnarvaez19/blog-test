@@ -1,18 +1,25 @@
-from typing import Optional, Union, Literal
+from typing import Optional, Union, Literal, Sequence
 from uuid import UUID
 
 import jwt
 
-from sqlmodel import Session, select
+from sqlmodel import Session, select, or_
 
 from pydantic import BaseModel
 
 from api.models import User, Post
 from api.config import CONFIG
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class Search(BaseModel):
+    posts_by_title: Optional[Sequence[Post]] = None
+    posts_by_tags: Optional[Sequence[Post]] = None
+    posts_by_body: Optional[Sequence[Post]] = None
 
 
 async def create_token(user: User) -> Token:
@@ -24,28 +31,38 @@ async def create_token(user: User) -> Token:
     return Token(access_token=token, token_type="bearer")
 
 
-async def get_user_by_id(user_id: UUID, session: Session) -> Optional[User]:
-    user = session.get(User, user_id)
+async def get_user(query: Union[UUID, str], param: Literal["id", "username", "email"], session: Session) -> Optional[User]:
+    if param == "id":
+        statement = select(User).where(User.id == query)
+    if param == "username":
+        statement = select(User).where(User.username == query)
+    if param == "email":
+        statement = select(User).where(User.email == query)
+
+    user = session.exec(statement).one_or_none()
 
     return user
 
 
-async def get_user_by_username(username: str, session: Session) -> Optional[User]:
-    query = select(User).where(User.username == username)
-    user = session.exec(query).one_or_none()
+async def get_post(query: Union[UUID, str], param: Literal["id", "title", "body", "tags"], session: Session) -> Union[Sequence[Post], Post, None]:
+    if not param == "id" and isinstance(query, str):
+        words = query.split()
+        if param == "title":
+            filters = [Post.title.ilike(f"%{word}%") for word in words]             # type: ignore
+        if param == "tags":
+            filters = [Post.tags.ilike(f"%{word}%") for word in words]              # type: ignore
+        if param == "body":
+            filters = [Post.body.ilike(f"%{word}%") for word in words]              # type: ignore
+        
+        posts = session.exec(select(Post).where(or_(*filters))).all()
+    else:
+        posts = session.get(Post, query)
 
-    return user
-
-
-async def get_user_by_email(email: str, session: Session) -> Optional[User]:
-    query = select(User).where(User.email == email)
-    user = session.exec(query).one_or_none()
-
-    return user
+    return posts
 
 
 async def authenticate_user(username: str, password: str, session: Session) -> Union[User, Literal[False]]:
-    user = await get_user_by_username(username, session)
+    user = await get_user(username, "username", session)
     if not user:
         return False
     
@@ -53,9 +70,3 @@ async def authenticate_user(username: str, password: str, session: Session) -> U
         return False
     
     return user
-
-
-async def get_post_by_id(post_id: UUID, session: Session):
-    post = session.get(Post, post_id)
-
-    return post
