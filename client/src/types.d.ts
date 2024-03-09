@@ -1,18 +1,28 @@
+export interface UserProps {
+    id: string,
+    username: string,
+    email: string | null,
+    created_at: string,
+    avatar: string | null,
+    posts: {id: string, title: string, author_id: string, body: string}[]
+}
+
+export interface CommentProps {
+    id: string,
+    body: string,
+    created_at: string,
+    author: UserProps,
+}
+
 export interface PostProps {
-    post: {
-        id: string,
-        created_at: string,
-        author_id: string,
-        title: string,
-        body: string,
-        tags: string,
-        author: {
-            id: string,
-            created_at: string,
-            username: string,
-            email: string,
-        }
-    }   
+    id: string,
+    created_at: string,
+    author_id: string,
+    title: string,
+    body: string,
+    tags: string,
+    author: UserProps,
+    comments: CommentProps[],
 }
 
 export interface FeedProps {
@@ -60,17 +70,6 @@ export interface publishPostProps {
     setErrorMessage: (message: string) => void,
 }
 
-export interface UserProps {
-    user: {
-        id: string,
-        username: string,
-        email: string | null,
-        created_at: string,
-        avatar: string | null,
-        posts: {id: string, title: string, author_id: string, body: string}[]
-    }
-}
-
 export interface SearchFieldProps {
     query: string,
     setQuery: (newQuery: string) => void,
@@ -78,4 +77,23 @@ export interface SearchFieldProps {
 
 export interface SearchBarProps extends SearchFieldProps {
     submitHandler: () => void
+}
+
+export interface CommentSectionProps {
+    postId: string,
+}
+
+export interface CommentSectionButtonProps {
+    allowComments: boolean,
+}
+
+export interface CommentSectionFieldProps {
+    allowComments: boolean,
+    comment: string,
+    setComment: (newComment: string) => void,
+}
+
+export interface CommentSectionFormProps {
+    allowComments: boolean,
+    postId: string,
 }
