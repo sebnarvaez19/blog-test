@@ -10,14 +10,13 @@ const Index: React.FC = () => {
     
     return (
         <Grid container direction="row" justifyContent="center" alignItems="flex-start" spacing={1}>
-            <Grid item xs={3} container justifyContent="flex-end">
-                <Filters />
-            </Grid>
             <Grid item xs={6}>
                 <LoginOrAdd />
                 <Feed posts={posts}/>
             </Grid>
-            <Grid item xs={3} />
+            <Grid item xs={3} container>
+                <Filters />
+            </Grid>
         </Grid>
     )
 }
