@@ -44,7 +44,7 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
 4. Functionality to create posts ✔️
 5. Change beercss for Material UI ✔️
 6. Change to Material 3 ✔️
-7. Filters and Recent components ❌
+7. Filters component ✔️
 8. Searchbar component ✔️
 9. Support for comments ❌
 0. Support for images ❌
