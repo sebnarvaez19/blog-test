@@ -43,8 +43,8 @@ Also, there should be a DB for the images, discussing with Andrés, the images s
 3. Create the blog client ✔️
 4. Functionality to create posts ✔️
 5. Change beercss for Material UI ✔️
-6. Change to Material 3 ❌
+6. Change to Material 3 ✔️
 7. Filters and Recent components ❌
-8. Searchbar component ❌
+8. Searchbar component ✔️
 9. Support for comments ❌
 0. Support for images ❌
