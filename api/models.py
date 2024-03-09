@@ -93,6 +93,12 @@ class CommentCreate(CommentBase):
     pass
 
 
+class CommentRead(CommentBase):
+    id: UUID
+    created_at: datetime
+    author: UserRead
+
+
 class UserReadWithPosts(UserRead):
     posts: List[Post]
 
@@ -102,4 +108,4 @@ class PostReadWithUser(PostRead):
 
 
 class PostReadWithUserAndComments(PostReadWithUser):
-    comments: List[Comment]
+    comments: List[CommentRead]
