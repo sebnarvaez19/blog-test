@@ -1,4 +1,4 @@
-from typing import Optional, Union, Literal, Sequence
+from typing import Optional, Union, Tuple, Literal, Sequence
 from uuid import UUID
 
 import jwt
@@ -7,7 +7,7 @@ from fastapi import HTTPException, status
 from pydantic import BaseModel
 from sqlmodel import Session, column, select, or_
 
-from api.models import User, Post
+from api.models import User, Post, Comment
 from api.config import CONFIG
 
 
@@ -38,6 +38,17 @@ async def get_user(session: Session, query: Union[UUID, str], param: Literal["id
     return user
 
 
+async def get_current_user(session: Session, token: str) -> User:
+    try:
+        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
+        user = await get_user(session, user_data["id"])
+        assert isinstance(user, User)
+    except:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
+    return user
+
+
 async def get_post(session: Session, query: Union[UUID, str], param: Literal["id", "title", "body", "tags"] = "id") -> Optional[Post]:
     if param == "id":
         statement = select(Post).where(Post.id == query)
@@ -53,23 +64,30 @@ async def get_post(session: Session, query: Union[UUID, str], param: Literal["id
     return post
 
 
-async def get_post_from_current_user(session: Session, token: str, post_id: UUID) -> Post:
-    try:
-        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
-        user = await get_user(session, user_data["id"])
-        assert isinstance(user, User)
-    except:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+async def get_comment(session: Session, comment_id: UUID) -> Comment:
+    comment = session.get(Comment, comment_id)
+    if not comment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
     
+    return comment
+
+
+async def get_post_and_current_user(session: Session, token: str, post_id: UUID) -> Tuple[User, Post]:
+    user = await get_current_user(session, token)
     post = await get_post(session, post_id)
     if not (post and isinstance(post, Post)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    
+    return user, post
+
+
+async def get_post_from_current_user(session: Session, token: str, post_id: UUID) -> Post:
+    user, post = await get_post_and_current_user(session, token, post_id)
 
     if post.author.id != user.id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Only the post owner can delete it")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Only the post owner can update it")
     
     return post
-    
 
 
 async def authenticate_user(session: Session, username: str, password: str) -> Union[User, Literal[False]]:

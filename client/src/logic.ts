@@ -115,3 +115,16 @@ export async function getUser(userId: string): Promise<UserProps> {
 
     return data
 }
+
+export async function publishComment(postId: string, token: string, comment: string): Promise<PostProps> {
+    const requestOptions = {
+        "method": "POST",
+        "headers": {"Content-Type": "application/json", "Authorization": "Bearer " + token},
+        "body": JSON.stringify({body: comment}),
+    }
+
+    const response = await fetch(`/api/comments/post=${postId}`, requestOptions)
+    const data = await response.json()
+
+    return data
+}

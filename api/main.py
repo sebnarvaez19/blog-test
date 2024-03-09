@@ -11,9 +11,9 @@ from passlib.hash import bcrypt
 
 from sqlmodel import Session, select, column
 
-from api.models import User, UserCreate, UserRead, UserUpdate, UserReadWithPosts, Post, PostCreate, PostRead, PostUpdate, PostReadWithUser
+from api.models import User, UserCreate, UserRead, UserUpdate, UserReadWithPosts, Post, PostCreate, PostRead, PostUpdate, PostReadWithUser, PostReadWithUserAndComments, Comment, CommentCreate
 from api.database import lifespan, get_session
-from api.services import Token, authenticate_user, create_token, get_post, get_user, get_post_from_current_user, search_post
+from api.services import Token, authenticate_user, create_token, get_post, get_user, get_comment, get_current_user, get_post_from_current_user, get_post_and_current_user, search_post
 from api.config import CONFIG
 
 
@@ -124,11 +124,7 @@ async def delete_user(*, session: Session = Depends(get_session), user_id: UUID)
 
 @app.get("/api/users/me", response_model=UserReadWithPosts)
 async def read_current_user(*, session: Session = Depends(get_session), token: str = Depends(oauth2schema)):
-    try:
-        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
-        user = await get_user(session, user_data["id"])
-    except:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    user = await get_current_user(session, token)
     
     return user
 
@@ -157,17 +153,13 @@ async def delete_current_user(*, session: Session = Depends(get_session), token:
 
 @app.post("/api/posts", response_model=PostRead)
 async def create_post(*, session: Session = Depends(get_session), token: str = Depends(oauth2schema), post: PostCreate):
-    try:
-        user_data = jwt.decode(token, key=CONFIG.SECRET_KEY, algorithms=[CONFIG.ALGORITHM])
-        user = await get_user(session, user_data["id"])
-    except:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    user = await get_current_user(session, token)
 
     db_post = Post(
         title=post.title,
         body=post.body,
         tags=post.tags,
-        author_id=UUID(user_data["id"]),
+        author_id=user.id,                                              #type: ignore
         author=user
     )         
 
@@ -191,7 +183,7 @@ async def read_posts(*, session: Session = Depends(get_session), limit: int = 0,
     return posts
 
 
-@app.get("/api/posts/id={post_id}", response_model=PostReadWithUser)
+@app.get("/api/posts/id={post_id}", response_model=PostReadWithUserAndComments)
 async def read_post(*, session: Session = Depends(get_session), post_id: UUID):
     post = await get_post(session, post_id)
     if not post:
@@ -259,3 +251,26 @@ async def search(*, session: Session = Depends(get_session), query: str, field: 
     posts = await search_post(session, query, field)
 
     return posts
+
+
+@app.post("/api/comments/post={post_id}", response_model=PostReadWithUserAndComments)
+async def create_comment(*, session: Session = Depends(get_session), token: str = Depends(oauth2schema), post_id: UUID, comment: CommentCreate):
+    user, post = await get_post_and_current_user(session, token, post_id)
+
+    db_comment = Comment(body=comment.body, author_id=user.id, post_id=post.id, author=user, post=post)    # type: ignore
+
+    session.add(db_comment)
+    session.commit()
+    session.refresh(post)
+
+    return post
+
+
+@app.delete("/api/comments/id={comment_id}")
+async def delete_comment(*, session: Session = Depends(get_session), comment_id: UUID):
+    comment = await get_comment(session, comment_id)
+    
+    session.delete(comment)
+    session.commit()
+    
+    return {"status": "completed", "detail": "Comment has been deleted succesfully"}
